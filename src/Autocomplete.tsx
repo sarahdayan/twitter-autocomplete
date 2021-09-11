@@ -61,8 +61,6 @@ export const Autocomplete = () => {
             },
           ];
         }
-
-        return [];
       }
 
       return [];
