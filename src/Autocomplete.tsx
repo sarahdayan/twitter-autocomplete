@@ -45,13 +45,16 @@ export const Autocomplete = () => {
               },
               getItems() {
                 return accounts.filter(({ name, handle }) => {
-                  return (
-                    name
-                      .toLowerCase()
-                      .startsWith(activeToken?.token.toLowerCase().slice(1)) ||
-                    handle
-                      .toLowerCase()
-                      .startsWith(activeToken?.token.toLowerCase().slice(1))
+                  const tokenizedName = name.split(' ');
+                  const tokenizedHandle = handle
+                    .replace(/([a-z])([A-Z])/g, '$1 $2')
+                    .split(' ');
+                  const normalizedToken = activeToken?.token
+                    .toLowerCase()
+                    .slice(1);
+
+                  return [...tokenizedName, ...tokenizedHandle].some((item) =>
+                    item.toLowerCase().startsWith(normalizedToken)
                   );
                 });
               },
