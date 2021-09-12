@@ -77,13 +77,15 @@ export const Autocomplete = () => {
     placeholder: "What's up?",
     getSources({ query }) {
       const cursorPosition = inputRef.current?.selectionEnd;
-      const tokenizedQuery = query.split(' ').reduce((acc, token, index) => {
-        const previous = acc[index - 1];
-        const start = index === 0 ? index : previous.range[1] + 1;
-        const end = start + token.length;
+      const tokenizedQuery = query
+        .split(/[\s\n]/)
+        .reduce((acc, token, index) => {
+          const previous = acc[index - 1];
+          const start = index === 0 ? index : previous.range[1] + 1;
+          const end = start + token.length;
 
-        return acc.concat([{ token, range: [start, end] }]);
-      }, [] as QueryToken[]);
+          return acc.concat([{ token, range: [start, end] }]);
+        }, [] as QueryToken[]);
 
       if (cursorPosition) {
         const activeToken = tokenizedQuery.find((token) =>
