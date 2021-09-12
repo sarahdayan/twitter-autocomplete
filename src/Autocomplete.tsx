@@ -169,84 +169,88 @@ export const Autocomplete = () => {
       <div className="rounded-lg shadow-xl bg-gray-900">
         <div className="shadow rounded-lg">
           <div className="py-4 px-6 text-white rounded-lg">
-            <div className="relative flex space-x-4">
+            <div className="flex space-x-4">
               <img
                 className="w-10 h-10 rounded-full flex-none"
                 src="https://pbs.twimg.com/profile_images/977873484759158784/mOItIR7M_x96.jpg"
                 alt=""
               />
-              <form
-                {...autocomplete.getFormProps({
-                  inputElement: inputRef.current as unknown as HTMLInputElement,
-                })}
-                className="mt-2 flex-grow"
-              >
-                <textarea
-                  className="bg-transparent focus:outline-none placeholder-gray-500 w-full resize-none h-36"
-                  ref={inputRef}
-                  {...autocomplete.getInputProps({
+              <div className="relative flex-grow mt-2">
+                <form
+                  {...autocomplete.getFormProps({
                     inputElement:
                       inputRef.current as unknown as HTMLInputElement,
                   })}
-                  spellCheck={false}
-                  // eslint-disable-next-line jsx-a11y/no-autofocus
-                  autoFocus={true}
-                  maxLength={280}
-                />
-              </form>
-              {state.isOpen && (
-                <div
-                  {...autocomplete.getPanelProps({})}
-                  className="absolute shadow-light-xl w-full max-w-xs left-0 rounded-lg"
-                  style={{ top: `${top + height}px` }}
                 >
-                  <div className="shadow-light rounded-lg">
-                    {state.collections.map(({ source, items }) => {
-                      return (
-                        <div
-                          key={`source-${source.sourceId}`}
-                          className="bg-gray-900 rounded-lg overflow-hidden py-2 mt-2 w-full"
-                        >
-                          {items.length > 0 && (
-                            <ul {...autocomplete.getListProps()}>
-                              {items.map((item) => {
-                                const itemProps = autocomplete.getItemProps({
-                                  item,
-                                  source,
-                                });
-                                const isAccount = isTwitterAccount(item);
-
-                                return (
-                                  <li
-                                    key={isAccount ? item.handle : item.hashtag}
-                                    {...itemProps}
-                                  >
-                                    <div
-                                      className={[
-                                        'py-2 px-6 flex flex-col space-y-1 cursor-pointer',
-                                        itemProps['aria-selected'] &&
-                                          'bg-gray-800',
-                                      ]
-                                        .filter(Boolean)
-                                        .join(' ')}
-                                    >
-                                      {isAccount ? (
-                                        <AccountItem item={item} />
-                                      ) : (
-                                        <HashtagItem item={item} />
-                                      )}
-                                    </div>
-                                  </li>
-                                );
-                              })}
-                            </ul>
-                          )}
-                        </div>
-                      );
+                  <textarea
+                    className="bg-transparent focus:outline-none placeholder-gray-500 w-full resize-none h-36"
+                    ref={inputRef}
+                    {...autocomplete.getInputProps({
+                      inputElement:
+                        inputRef.current as unknown as HTMLInputElement,
                     })}
+                    spellCheck={false}
+                    // eslint-disable-next-line jsx-a11y/no-autofocus
+                    autoFocus={true}
+                    maxLength={280}
+                  />
+                </form>
+                {state.isOpen && (
+                  <div
+                    {...autocomplete.getPanelProps({})}
+                    className="absolute shadow-light-xl w-full max-w-xs left-0 rounded-lg"
+                    style={{ top: `${top + height}px` }}
+                  >
+                    <div className="shadow-light rounded-lg">
+                      {state.collections.map(({ source, items }) => {
+                        return (
+                          <div
+                            key={`source-${source.sourceId}`}
+                            className="bg-gray-900 rounded-lg overflow-hidden py-2 mt-2 w-full"
+                          >
+                            {items.length > 0 && (
+                              <ul {...autocomplete.getListProps()}>
+                                {items.map((item) => {
+                                  const itemProps = autocomplete.getItemProps({
+                                    item,
+                                    source,
+                                  });
+                                  const isAccount = isTwitterAccount(item);
+
+                                  return (
+                                    <li
+                                      key={
+                                        isAccount ? item.handle : item.hashtag
+                                      }
+                                      {...itemProps}
+                                    >
+                                      <div
+                                        className={[
+                                          'py-2 px-6 flex flex-col space-y-1 cursor-pointer',
+                                          itemProps['aria-selected'] &&
+                                            'bg-gray-800',
+                                        ]
+                                          .filter(Boolean)
+                                          .join(' ')}
+                                      >
+                                        {isAccount ? (
+                                          <AccountItem item={item} />
+                                        ) : (
+                                          <HashtagItem item={item} />
+                                        )}
+                                      </div>
+                                    </li>
+                                  );
+                                })}
+                              </ul>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
           <div className="py-3 px-6 rounded-bl-lg rounded-br-lg flex justify-end border-t border-gray-800">
