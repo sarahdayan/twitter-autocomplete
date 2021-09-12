@@ -1,3 +1,3 @@
 export type Hashtag = {
-  hashtag: `#${string}`;
+  hashtag: string;
 };

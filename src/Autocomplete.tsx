@@ -9,7 +9,12 @@ import getCaretCoordinates from 'textarea-caret';
 
 import { useAutocomplete } from './hooks';
 import type { Hashtag, QueryToken, Account } from './types';
-import { highlight, replaceAt } from './utils';
+import {
+  highlight,
+  isTwitterAccount,
+  isValidTwitterUsername,
+  replaceAt,
+} from './utils';
 
 const searchClient = algoliasearch(
   'HSORS1ROJD',
@@ -121,10 +126,6 @@ const HashtagItem = ({ hit }: HashtagItemProps) => {
   return <>{`#${hit.hashtag}`}</>;
 };
 
-function isTwitterAccount(item: Account | Hashtag): item is Account {
-  return Boolean((item as Account).handle);
-}
-
 export const Autocomplete = () => {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const { autocomplete, state } = useAutocomplete({
@@ -148,10 +149,7 @@ export const Autocomplete = () => {
           token.range.includes(cursorPosition)
         );
 
-        if (
-          activeToken?.token.startsWith('@') &&
-          activeToken?.token.length > 1
-        ) {
+        if (activeToken?.token && isValidTwitterUsername(activeToken?.token)) {
           return [
             {
               sourceId: 'accounts',
