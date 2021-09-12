@@ -5,23 +5,25 @@ import type {
 import { createAutocomplete } from '@algolia/autocomplete-core';
 import { useMemo, useState } from 'react';
 
-import type { TwitterAccount } from '../types';
+import type { AutocompleteItem } from '../types';
 
-export function useAutocomplete(props: AutocompleteOptions<TwitterAccount>) {
-  const [state, setState] = useState<AutocompleteState<TwitterAccount>>(() => ({
-    collections: [],
-    completion: null,
-    context: {},
-    isOpen: false,
-    query: '',
-    activeItemId: null,
-    status: 'idle',
-  }));
+export function useAutocomplete(props: AutocompleteOptions<AutocompleteItem>) {
+  const [state, setState] = useState<AutocompleteState<AutocompleteItem>>(
+    () => ({
+      collections: [],
+      completion: null,
+      context: {},
+      isOpen: false,
+      query: '',
+      activeItemId: null,
+      status: 'idle',
+    })
+  );
 
   const autocomplete = useMemo(
     () =>
       createAutocomplete<
-        TwitterAccount,
+        AutocompleteItem,
         React.BaseSyntheticEvent,
         React.MouseEvent,
         React.KeyboardEvent
