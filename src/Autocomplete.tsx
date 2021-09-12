@@ -3,16 +3,11 @@ import getCaretCoordinates from 'textarea-caret';
 
 import { useAutocomplete } from './hooks';
 import { accounts, hashtags } from './items';
-import type {
-  AutocompleteItem,
-  Hashtag,
-  QueryToken,
-  TwitterAccount,
-} from './types';
+import type { AutocompleteItem, Hashtag, QueryToken, Account } from './types';
 import { replaceAt } from './utils';
 
 type AccountItemProps = {
-  item: TwitterAccount;
+  item: Account;
 };
 
 const AccountItem = ({ item }: AccountItemProps) => {
@@ -70,8 +65,8 @@ const HashtagItem = ({ item }: HashtagItemProps) => {
   return <>{`#${item.hashtag}`}</>;
 };
 
-function isTwitterAccount(item: AutocompleteItem): item is TwitterAccount {
-  return Boolean((item as TwitterAccount).handle);
+function isTwitterAccount(item: AutocompleteItem): item is Account {
+  return Boolean((item as Account).handle);
 }
 
 export const Autocomplete = () => {
@@ -104,7 +99,7 @@ export const Autocomplete = () => {
               sourceId: 'accounts',
               onSelect({ item, setQuery }) {
                 const [index] = activeToken.range;
-                const replacement = `@${(item as TwitterAccount).handle}`;
+                const replacement = `@${(item as Account).handle}`;
                 const newQuery = replaceAt(query, replacement, index);
 
                 setQuery(newQuery);
@@ -144,11 +139,16 @@ export const Autocomplete = () => {
               },
               getItems() {
                 return hashtags.filter(({ hashtag }) => {
+                  const tokenizedHashtag = hashtag
+                    .replace(/([a-z])([A-Z])/g, '$1 $2')
+                    .split(' ');
                   const normalizedToken = activeToken?.token
                     .toLowerCase()
                     .slice(1);
 
-                  return hashtag.toLowerCase().startsWith(normalizedToken);
+                  return tokenizedHashtag.some((item) =>
+                    item.toLowerCase().startsWith(normalizedToken)
+                  );
                 });
               },
             },

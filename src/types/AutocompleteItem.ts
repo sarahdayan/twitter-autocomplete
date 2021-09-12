@@ -1,3 +1,3 @@
-import type { Hashtag, TwitterAccount } from '.';
+import type { Hashtag, Account } from '.';
 
-export type AutocompleteItem = Hashtag | TwitterAccount;
+export type AutocompleteItem = Account | Hashtag;

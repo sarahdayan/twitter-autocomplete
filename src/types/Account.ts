@@ -1,4 +1,4 @@
-export type TwitterAccount = {
+export type Account = {
   name: string;
   handle: string;
   image: string;
