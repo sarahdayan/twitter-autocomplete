@@ -1,20 +1,30 @@
+import {
+  getAlgoliaResults,
+  parseAlgoliaHitHighlight,
+} from '@algolia/autocomplete-preset-algolia';
+import type { Hit } from '@algolia/client-search';
+import algoliasearch from 'algoliasearch/lite';
 import React, { useRef } from 'react';
 import getCaretCoordinates from 'textarea-caret';
 
 import { useAutocomplete } from './hooks';
-import { accounts, hashtags } from './items';
-import type { AutocompleteItem, Hashtag, QueryToken, Account } from './types';
-import { replaceAt } from './utils';
+import type { Hashtag, QueryToken, Account } from './types';
+import { highlight, replaceAt } from './utils';
+
+const searchClient = algoliasearch(
+  'HSORS1ROJD',
+  '94c342813004a0a753559c12ee224128'
+);
 
 type AccountItemProps = {
-  item: Account;
+  hit: Hit<Account>;
 };
 
-const AccountItem = ({ item }: AccountItemProps) => {
+const AccountItem = ({ hit }: AccountItemProps) => {
   return (
     <>
-      {(item.follower || item.followed) && (
-        <div className="flex items-center space-x-1 text-gray-600 text-sm">
+      {(hit.follower || hit.followed) && (
+        <div className="flex hits-center space-x-1 text-gray-600 text-sm">
           <svg className="h-4 w-auto" viewBox="0 0 20 20" fill="currentColor">
             <path
               fillRule="evenodd"
@@ -22,25 +32,49 @@ const AccountItem = ({ item }: AccountItemProps) => {
               clipRule="evenodd"
             />
           </svg>
-          {item.follower && item.followed && <span>You follow each other</span>}
-          {!item.follower && item.followed && <span>You follow them</span>}
-          {item.follower && !item.followed && <span>They follow you</span>}
+          {hit.follower && hit.followed && <span>You follow each other</span>}
+          {!hit.follower && hit.followed && <span>You follow them</span>}
+          {hit.follower && !hit.followed && <span>They follow you</span>}
         </div>
       )}
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-3">
         <img
           className="w-10 h-10 rounded-full flex-none"
-          src={`https://pbs.twimg.com/profile_images/${item.image}`}
+          src={`https://pbs.twimg.com/profile_images/${hit.image}`}
           alt=""
         />
         <div>
           <div className="text-white font-semibold flex items-center space-x-1">
-            <span>{item.name}</span>
-            {item.verified && (
+            {hit.name !== '' && (
+              <span>
+                {highlight(
+                  parseAlgoliaHitHighlight({
+                    hit,
+                    attribute: 'name',
+                  })
+                )}
+              </span>
+            )}
+            {hit.emojis.length > 0 && (
+              <ul className="flex space-x-1">
+                {hit.emojis.map((emoji, index) => (
+                  // eslint-disable-next-line react/no-array-index-key
+                  <li key={index}>
+                    <img
+                      className="h-4 w-auto"
+                      src={`https://abs-0.twimg.com/emoji/v2/svg/${emoji}`}
+                      alt=""
+                    />
+                  </li>
+                ))}
+              </ul>
+            )}
+            {hit.verified && (
               <svg
                 className="h-5 w-5 mt-0.5"
                 viewBox="0 0 20 20"
                 fill="currentColor"
+                aria-label="Verified account"
               >
                 <path
                   fillRule="evenodd"
@@ -49,8 +83,30 @@ const AccountItem = ({ item }: AccountItemProps) => {
                 />
               </svg>
             )}
+            {hit.protected && (
+              <svg
+                className="h-5 w-5 mt-0.5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-label="Protected account"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            )}
           </div>
-          <div className="text-gray-500">{item.handle}</div>
+          <div className="text-gray-500 text-sm">
+            @
+            {highlight(
+              parseAlgoliaHitHighlight({
+                hit,
+                attribute: 'handle',
+              })
+            )}
+          </div>
         </div>
       </div>
     </>
@@ -58,14 +114,14 @@ const AccountItem = ({ item }: AccountItemProps) => {
 };
 
 type HashtagItemProps = {
-  item: Hashtag;
+  hit: Hit<Hashtag>;
 };
 
-const HashtagItem = ({ item }: HashtagItemProps) => {
-  return <>{`#${item.hashtag}`}</>;
+const HashtagItem = ({ hit }: HashtagItemProps) => {
+  return <>{`#${hit.hashtag}`}</>;
 };
 
-function isTwitterAccount(item: AutocompleteItem): item is Account {
+function isTwitterAccount(item: Account | Hashtag): item is Account {
   return Boolean((item as Account).handle);
 }
 
@@ -107,18 +163,21 @@ export const Autocomplete = () => {
                 setQuery(newQuery);
               },
               getItems() {
-                return accounts.filter(({ name, handle }) => {
-                  const tokenizedName = name.split(' ');
-                  const tokenizedHandle = handle
-                    .replace(/([a-z])([A-Z])/g, '$1 $2')
-                    .split(' ');
-                  const normalizedToken = activeToken?.token
-                    .toLowerCase()
-                    .slice(1);
+                const normalizedQuery = activeToken?.token
+                  .toLowerCase()
+                  .slice(1);
 
-                  return [...tokenizedName, ...tokenizedHandle].some((item) =>
-                    item.toLowerCase().startsWith(normalizedToken)
-                  );
+                return getAlgoliaResults({
+                  searchClient,
+                  queries: [
+                    {
+                      indexName: 'twitter_accounts',
+                      query: normalizedQuery,
+                      params: {
+                        hitsPerPage: 8,
+                      },
+                    },
+                  ],
                 });
               },
             },
@@ -140,17 +199,21 @@ export const Autocomplete = () => {
                 setQuery(newQuery);
               },
               getItems() {
-                return hashtags.filter(({ hashtag }) => {
-                  const tokenizedHashtag = hashtag
-                    .replace(/([a-z])([A-Z])/g, '$1 $2')
-                    .split(' ');
-                  const normalizedToken = activeToken?.token
-                    .toLowerCase()
-                    .slice(1);
+                const normalizedQuery = activeToken?.token
+                  .toLowerCase()
+                  .slice(1);
 
-                  return tokenizedHashtag.some((item) =>
-                    item.toLowerCase().startsWith(normalizedToken)
-                  );
+                return getAlgoliaResults({
+                  searchClient,
+                  queries: [
+                    {
+                      indexName: 'twitter_hashtags',
+                      query: normalizedQuery,
+                      params: {
+                        hitsPerPage: 8,
+                      },
+                    },
+                  ],
                 });
               },
             },
@@ -211,7 +274,10 @@ export const Autocomplete = () => {
                             className="bg-gray-900 rounded-lg overflow-hidden py-2 mt-2 w-full"
                           >
                             {items.length > 0 && (
-                              <ul {...autocomplete.getListProps()}>
+                              <ul
+                                {...autocomplete.getListProps()}
+                                className="overflow-y-scroll h-full max-h-96"
+                              >
                                 {items.map((item) => {
                                   const itemProps = autocomplete.getItemProps({
                                     item,
@@ -236,9 +302,9 @@ export const Autocomplete = () => {
                                           .join(' ')}
                                       >
                                         {isAccount ? (
-                                          <AccountItem item={item} />
+                                          <AccountItem hit={item} />
                                         ) : (
-                                          <HashtagItem item={item} />
+                                          <HashtagItem hit={item} />
                                         )}
                                       </div>
                                     </li>
