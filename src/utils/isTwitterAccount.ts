@@ -1,5 +1,7 @@
-import type { Account, Hashtag } from '../types';
+import type { Hit } from '@algolia/client-search';
 
-export function isTwitterAccount(item: Account | Hashtag): item is Account {
-  return Boolean((item as Account).handle);
+import type { Account, AutocompleteItem } from '../types';
+
+export function isTwitterAccount(item: AutocompleteItem): item is Hit<Account> {
+  return Boolean((item as Hit<Account>).handle);
 }
